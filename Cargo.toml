@@ -1,0 +1,10 @@
+[package]
+name = "glium-mincraft"
+version = "0.1.0"
+authors = ["Ross Schulman <ross@rbs.io>"]
+
+[dependencies]
+glutin = "*"
+gfx = "*"
+gfx_window_glutin = "*"
+cgmath = "0.14.1"
