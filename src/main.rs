@@ -27,6 +27,8 @@ use glutin::GlContext;
 use cgmath::prelude::*;
 use cgmath::{Deg, Vector3, Point3, Matrix4};
 
+mod cube;
+
 pub type ColorFormat = gfx::format::Rgba8;
 pub type DepthFormat = gfx::format::DepthStencil;
 
@@ -55,132 +57,6 @@ gfx_defines!{
     }
 }
 
-fn cube(pos_x: f32, pos_y: f32, pos_z: f32, edge_length: f32) -> (Vec<Vertex>, Vec<u16>) {
-    // (Vertexes, Indices)
-    let edge_half = edge_length * 0.5;
-    let vertices: Vec<Vertex> =
-        vec![// Top
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
-                 uv: [0.0, 1.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
-                 uv: [0.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
-                 uv: [1.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
-                 uv: [1.0, 1.0],
-             },
-
-             // Bottom
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
-                 uv: [0.0, 1.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0,
-                       pos_y + edge_half * -1.0,
-                       pos_z + edge_half * -1.0],
-                 uv: [0.0, 0.0],
-             },
-
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * -1.0],
-                 uv: [1.0, 0.0],
-             },
-
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
-                 uv: [1.0, 1.0],
-             },
-
-             // Front
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * -1.0],
-                 uv: [1.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0,
-                       pos_y + edge_half * -1.0,
-                       pos_z + edge_half * -1.0],
-                 uv: [0.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
-                 uv: [1.0, 1.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
-                 uv: [0.0, 1.0],
-             },
-
-             // Back
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
-                 uv: [1.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
-                 uv: [0.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
-                 uv: [1.0, 1.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
-                 uv: [0.0, 1.0],
-             },
-
-             // Right
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
-                 uv: [1.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * -1.0],
-                 uv: [0.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
-                 uv: [1.0, 1.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
-                 uv: [0.0, 1.0],
-             },
-
-             // Left
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
-                 uv: [1.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0,
-                       pos_y + edge_half * -1.0,
-                       pos_z + edge_half * -1.0],
-                 uv: [0.0, 0.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
-                 uv: [1.0, 1.0],
-             },
-             Vertex {
-                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
-                 uv: [0.0, 1.0],
-             }];
-
-    let indices: Vec<u16> = vec![0, 1, 2, 2, 1, 3, 4, 5, 6, 6, 5, 7, 8, 9, 10, 10, 9, 11, 12, 13,
-                                 14, 14, 13, 15, 16, 17, 18, 18, 17, 19, 20, 21, 22, 22, 21, 23];
-
-    (vertices, indices)
-}
-
 const CLEAR_COLOR: [f32; 4] = [0.1, 0.2, 0.3, 1.0];
 
 pub fn main() {
@@ -193,17 +69,17 @@ pub fn main() {
         gfx_window_glutin::init::<ColorFormat, DepthFormat>(window_config, context, &events_loop);
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
     let pso = factory.create_pipeline_simple(include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
-                                                       "/src/shader/rect_150.glslv")),
-                                include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
-                                                       "/src/shader/rect_150.glslf")),
-                                pipe::new())
+    "/src/shader/rect_150.glslv")),
+    include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
+    "/src/shader/rect_150.glslf")),
+    pipe::new())
         .unwrap();
 
     // Load up model, view, and projection transform matrices
     let model_mat = Matrix4::identity().into();
     let view_mat = Matrix4::look_at(Point3::new(6.0, 6.0, 6.0),
-                                    Point3::new(0.0, 0.0, 0.0),
-                                    Vector3::unit_z())
+    Point3::new(0.0, 0.0, 0.0),
+    Vector3::unit_z())
         .into();
     let proj_mat = cgmath::perspective(Deg(60.0f32), 1.3, 0.1, 1000.0).into();
 
@@ -219,7 +95,7 @@ pub fn main() {
 
     let locals_buffer = factory.create_constant_buffer(1);
 
-    let (vertices, indices) = cube(0.0, 0.0, 0.0, 2.0);
+    let (vertices, indices) = cube::cube(0.0, 0.0, 0.0, 2.0);
     let (vertex_buffer, slice) =
         factory.create_vertex_buffer_with_slice(&vertices, &indices as &[u16]);
     let mut data = pipe::Data {
