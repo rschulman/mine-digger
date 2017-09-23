@@ -17,9 +17,12 @@ extern crate gfx;
 extern crate gfx_window_glutin;
 extern crate glutin;
 extern crate cgmath;
+extern crate image;
 
 use gfx::traits::FactoryExt;
-use gfx::Device;
+//use gfx::traits::FactoryExt::create_sample_linear;
+use gfx::{Device, Factory};
+use gfx::format::Rgba8;
 use glutin::GlContext;
 use cgmath::prelude::*;
 use cgmath::{Deg, Vector3, Point3, Matrix4};
@@ -30,7 +33,7 @@ pub type DepthFormat = gfx::format::DepthStencil;
 gfx_defines!{
     vertex Vertex {
         pos: [f32; 3] = "a_Pos",
-        color: [f32; 3] = "a_Color",
+        uv: [f32; 2] = "a_Uv",
     }
 
     constant Locals {
@@ -45,6 +48,7 @@ gfx_defines!{
         model: gfx::Global<[[f32; 4]; 4]> = "u_Model",
         view: gfx::Global<[[f32; 4]; 4]> = "u_View",
         proj: gfx::Global<[[f32; 4]; 4]> = "u_Proj",
+        tex: gfx::TextureSampler<[f32; 4]> = "t_Texture",
         out: gfx::RenderTarget<ColorFormat> = "Target0",
         out_depth: gfx::DepthTarget<DepthFormat> =
             gfx::preset::depth::LESS_EQUAL_WRITE,
@@ -55,53 +59,124 @@ fn cube(pos_x: f32, pos_y: f32, pos_z: f32, edge_length: f32) -> (Vec<Vertex>, V
     // (Vertexes, Indices)
     let edge_half = edge_length * 0.5;
     let vertices: Vec<Vertex> =
-        vec![Vertex {
+        vec![// Top
+             Vertex {
                  pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
-                 color: [1.0, 0.0, 0.0],
+                 uv: [0.0, 1.0],
              },
              Vertex {
                  pos: [pos_x + edge_half * -1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
-                 color: [1.0, 0.0, 0.0],
+                 uv: [0.0, 0.0],
              },
-
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
-                 color: [1.0, 0.0, 0.0],
-             },
-
              Vertex {
                  pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
-                 color: [1.0, 0.0, 0.0],
+                 uv: [1.0, 0.0],
              },
              Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
+                 uv: [1.0, 1.0],
+             },
+
+             // Bottom
+             Vertex {
                  pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
-                 color: [1.0, 0.0, 0.0],
+                 uv: [0.0, 1.0],
              },
              Vertex {
                  pos: [pos_x + edge_half * -1.0,
                        pos_y + edge_half * -1.0,
                        pos_z + edge_half * -1.0],
-                 color: [1.0, 0.0, 0.0],
-             },
-
-             Vertex {
-                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
-                 color: [1.0, 0.0, 0.0],
+                 uv: [0.0, 0.0],
              },
 
              Vertex {
                  pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * -1.0],
-                 color: [1.0, 0.0, 0.0],
+                 uv: [1.0, 0.0],
+             },
+
+             Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
+                 uv: [1.0, 1.0],
+             },
+
+             // Front
+             Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * -1.0],
+                 uv: [1.0, 0.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * -1.0,
+                       pos_y + edge_half * -1.0,
+                       pos_z + edge_half * -1.0],
+                 uv: [0.0, 0.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
+                 uv: [1.0, 1.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
+                 uv: [0.0, 1.0],
+             },
+
+             // Back
+             Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
+                 uv: [1.0, 0.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
+                 uv: [0.0, 0.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
+                 uv: [1.0, 1.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
+                 uv: [0.0, 1.0],
+             },
+
+             // Right
+             Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
+                 uv: [1.0, 0.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * -1.0],
+                 uv: [0.0, 0.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
+                 uv: [1.0, 1.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * 1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
+                 uv: [0.0, 1.0],
+             },
+
+             // Left
+             Vertex {
+                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * -1.0],
+                 uv: [1.0, 0.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * -1.0,
+                       pos_y + edge_half * -1.0,
+                       pos_z + edge_half * -1.0],
+                 uv: [0.0, 0.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * 1.0, pos_z + edge_half * 1.0],
+                 uv: [1.0, 1.0],
+             },
+             Vertex {
+                 pos: [pos_x + edge_half * -1.0, pos_y + edge_half * -1.0, pos_z + edge_half * 1.0],
+                 uv: [0.0, 1.0],
              }];
 
-    let indices: Vec<u16> = vec![
-        0, 1, 2, 2, 1, 3,  // top
-        4, 5, 6, 6, 5, 7,  // bottom
-        2, 3, 6, 6, 3, 7,  // right
-        0, 1, 4, 4, 1, 5,  // left
-        0, 2, 4, 4, 2, 6,  // front
-        1, 3, 5, 5, 3, 7   // back
-    ];
+    let indices: Vec<u16> = vec![0, 1, 2, 2, 1, 3, 4, 5, 6, 6, 5, 7, 8, 9, 10, 10, 9, 11, 12, 13,
+                                 14, 14, 13, 15, 16, 17, 18, 18, 17, 19, 20, 21, 22, 22, 21, 23];
 
     (vertices, indices)
 }
@@ -123,12 +198,24 @@ pub fn main() {
                                                        "/src/shader/rect_150.glslf")),
                                 pipe::new())
         .unwrap();
+
+    // Load up model, view, and projection transform matrices
     let model_mat = Matrix4::identity().into();
     let view_mat = Matrix4::look_at(Point3::new(6.0, 6.0, 6.0),
                                     Point3::new(0.0, 0.0, 0.0),
                                     Vector3::unit_z())
         .into();
     let proj_mat = cgmath::perspective(Deg(60.0f32), 1.3, 0.1, 1000.0).into();
+
+    // Load a texture
+    let img = image::open("textures/dirt.png").unwrap().to_rgba();
+    let (img_width, img_height) = img.dimensions();
+    let tex_type = gfx::texture::Kind::D2(img_width as u16,
+                                          img_height as u16,
+                                          gfx::texture::AaMode::Single);
+    let (_, view) = factory.create_texture_immutable_u8::<Rgba8>(tex_type, &[&img]).unwrap();
+    let sampler = factory.create_sampler_linear();
+
 
     let locals_buffer = factory.create_constant_buffer(1);
 
@@ -137,6 +224,7 @@ pub fn main() {
         factory.create_vertex_buffer_with_slice(&vertices, &indices as &[u16]);
     let mut data = pipe::Data {
         vbuf: vertex_buffer,
+        tex: (view, sampler),
         locals: locals_buffer,
         model: model_mat,
         view: view_mat,
