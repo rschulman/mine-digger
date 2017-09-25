@@ -4,6 +4,7 @@ extern crate gfx_window_glutin;
 extern crate glutin;
 extern crate cgmath;
 extern crate image;
+extern crate time;
 
 use gfx::traits::FactoryExt;
 //use gfx::traits::FactoryExt::create_sample_linear;
@@ -14,6 +15,7 @@ use cgmath::prelude::*;
 use cgmath::{Deg, Vector3, Point3, Matrix4};
 
 mod cube;
+mod player;
 
 pub type ColorFormat = gfx::format::Rgba8;
 pub type DepthFormat = gfx::format::DepthStencil;
@@ -46,6 +48,7 @@ gfx_defines!{
 const CLEAR_COLOR: [f32; 4] = [0.1, 0.2, 0.3, 1.0];
 
 pub fn main() {
+    let mut player = player::Player::new();
     let mut events_loop = glutin::EventsLoop::new();
     let window_config = glutin::WindowBuilder::new()
         .with_title("Mine Digger".to_string())
@@ -63,12 +66,13 @@ pub fn main() {
 
     // Load up model, view, and projection transform matrices
     let model_mat = Matrix4::identity().into();
-    let view_mat = Matrix4::look_at(Point3::new(6.0, 6.0, 6.0),
+    let mut view_mat = Matrix4::look_at(Point3::new(-6.0, 0.0, 0.0),
     Point3::new(0.0, 0.0, 0.0),
     Vector3::unit_z())
         .into();
     let proj_mat = cgmath::perspective(Deg(60.0f32), 1.3, 0.1, 1000.0).into();
 
+    println!("{:?}", view_mat);
     // Load a texture
     let img = image::open("textures/dirt.png").unwrap().to_rgba();
     let (img_width, img_height) = img.dimensions();
@@ -107,15 +111,28 @@ pub fn main() {
                         .. },
                         ..
                 } | glutin::WindowEvent::Closed => running = false,
+                glutin::WindowEvent::KeyboardInput {
+                    input: glutin::KeyboardInput {
+                        virtual_keycode: Some(glutin::VirtualKeyCode::W),
+                        .. },
+                        ..
+                } => {
+                    let direction = player.view_dir;
+                    player.accelerate( Vector3::new( 0.1 * direction.cos() , 0.1 * direction.sin() , 0.0 ) );
+                },
                 glutin::WindowEvent::Resized(width, height) => {
                     window.resize(width, height);
                     gfx_window_glutin::update_views(&window, &mut data.out, &mut main_depth);
-                }
+                },
                 _ => (),
             }
         });
 
+        player.tick();
+        println!("{:?}", player.position() + player.view_obj());
+        view_mat = Matrix4::look_at(player.position(), player.position() + player.view_obj(), Vector3::unit_z()).into();
         // draw a frame
+        //println!("{:?}", view_mat);
         let locals = Locals {
             model: model_mat,
             view: view_mat,
